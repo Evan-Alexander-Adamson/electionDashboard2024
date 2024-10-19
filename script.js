@@ -282,11 +282,16 @@ function handleResponsiveLayout() {
     }
 }
 
-// Add this to your existing early voting data
+// Update the earlyVotingData array with specific dates
 const earlyVotingData = [
     { state: 'Alabama', start: null, details: 'Alabama does not have early voting.' },
-    { state: 'Alaska', start: 15, details: 'Varies by location, but 15 days before Election Day in most locations.' },
-    // ... (include all states)
+    { state: 'Alaska', start: new Date(2024, 9, 21), details: 'Early voting starts on October 21, 2024' },
+    { state: 'Arizona', start: new Date(2024, 9, 9), details: 'Early voting starts on October 9, 2024' },
+    // Add the rest of the states with their specific early voting start dates
+    // Use null for states without early voting
+    // Example:
+    // { state: 'California', start: new Date(2024, 9, 7), details: 'Early voting starts on October 7, 2024' },
+    // ...
 ];
 
 // Function to create the USA map
@@ -316,10 +321,17 @@ function showTooltip(event) {
     if (stateData) {
         const tooltip = document.createElement('div');
         tooltip.id = 'tooltip';
-        tooltip.innerHTML = `
-            <strong>${stateName}</strong><br>
-            ${stateData.start ? `Early voting starts ${stateData.start} days before Election Day` : stateData.details}
-        `;
+        
+        let content = `<strong>${stateName}</strong><br>`;
+        if (stateData.start) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = stateData.start.toLocaleDateString('en-US', options);
+            content += `Early voting starts on ${formattedDate}`;
+        } else {
+            content += stateData.details;
+        }
+        
+        tooltip.innerHTML = content;
         
         document.body.appendChild(tooltip);
         
