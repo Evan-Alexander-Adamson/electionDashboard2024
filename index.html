@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024 Presidential Election Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>2024 Presidential Election Dashboard</h1>
+    </header>
+    <nav>
+        <!-- Add navigation items if needed -->
+    </nav>
+    <main>
+        <section id="market-ods">
+            <h2>Time Until Election Day</h2>
+            <div id="countdown-timer"></div>
+            <iframe
+                title="polymarket-election-iframe"
+                src="https://embed.polymarket.com/election.html?event=presidential-election-winner-2024&features=volume&theme=light"
+                width="400"
+                height="180"
+                frameBorder="0"
+            ></iframe>
+        </section>
+        <section id="candidate-info">
+            <h2>Candidate Information</h2>
+            <div id="candidate-cards"></div>
+        </section>
+        <section id="candidate-policies">
+            <h2>Candidate Policies</h2>
+            <div id="policy-tabs">
+                <button class="tab-button active" data-candidate="trump">Donald Trump</button>
+                <button class="tab-button" data-candidate="harris">Kamala Harris</button>
+            </div>
+            <div id="policy-content">
+                <div id="trump-policies" class="policy-list active">
+                    <img src="images/donald_trump.jpg" alt="Donald Trump" class="candidate-image">
+                    <ol id="trump-policy-list"></ol>
+                </div>
+                <div id="harris-policies" class="policy-list">
+                    <img src="images/kamala_harris.jpg" alt="Kamala Harris" class="candidate-image">
+                    <ol id="harris-policy-list"></ol>
+                </div>
+            </div>
+        </section>
+        <section id="key-issues">
+            <h2>Key Election Issues</h2>
+            <ul id="issues-list"></ul>
+        </section>
+        <section id="election-timeline">
+            <h2>Election Timeline</h2>
+            <div id="timeline"></div>
+        </section>
+        <section id="campaign-contributions">
+            <h2>Top Campaign Contributors</h2>
+            <div id="contribution-cards"></div>
+        </section>
+        <!-- Add this section where you want the map to appear -->
+        <section id="early-voting-map">
+            <h2>Early Voting Start Dates</h2>
+            <div id="map-container"></div>
+        </section>
+    </main>
+    <footer>
+        <p>Data sources: Polymarket, Associated Press, and official campaign websites</p>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
