@@ -369,3 +369,31 @@ main {
     opacity: 0;
     transition: opacity 0.3s;
 }
+
+/* Add these styles at the end of your existing CSS file */
+
+.early-voting-dropdown {
+    margin-bottom: 20px;
+}
+
+.early-voting-dropdown label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.early-voting-dropdown select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.early-voting-info {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f8ff;
+    border: 1px solid #b0d4ff;
+    border-radius: 4px;
+}

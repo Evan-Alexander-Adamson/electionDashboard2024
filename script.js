@@ -131,6 +131,7 @@ function initDashboard() {
     populateCampaignContributions();
     handleResponsiveLayout();
     window.addEventListener("resize", handleResponsiveLayout);
+    createEarlyVotingDropdown(); // Add this line
     createUSAMap();
 }
 
@@ -253,8 +254,9 @@ async function populateCandidateDetails() {
         if (details && financials) {
             const card = document.createElement("div");
             card.className = "candidate-card";
+            const imagePath = `images/${candidateName.toLowerCase().replace(' ', '_')}.jpg`;
             card.innerHTML = `
-                <img src="images/${candidateName.toLowerCase().replace(' ', '_')}.jpg" alt="${candidateName}">
+                <img src="${imagePath}" alt="${candidateName}" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.error('Failed to load image: ${imagePath}');">
                 <div class="candidate-info-text">
                     <h3>${candidateName}</h3>
                     <p><strong>Total Receipts:</strong> $${financials.receipts.toLocaleString()}</p>
@@ -263,6 +265,9 @@ async function populateCandidateDetails() {
                 </div>
             `;
             candidateCards.appendChild(card);
+            console.log(`Added card for ${candidateName}`);
+        } else {
+            console.error(`Failed to fetch data for ${candidateName}`);
         }
     }
 }
@@ -284,15 +289,133 @@ function handleResponsiveLayout() {
 
 // Update the earlyVotingData array with specific dates
 const earlyVotingData = [
-    { state: 'Alabama', start: null, details: 'Alabama does not have early voting.' },
-    { state: 'Alaska', start: new Date(2024, 9, 21), details: 'Early voting starts on October 21, 2024' },
-    { state: 'Arizona', start: new Date(2024, 9, 9), details: 'Early voting starts on October 9, 2024' },
-    // Add the rest of the states with their specific early voting start dates
-    // Use null for states without early voting
-    // Example:
-    // { state: 'California', start: new Date(2024, 9, 7), details: 'Early voting starts on October 7, 2024' },
-    // ...
+    { state: 'Alabama', details: 'Alabama does not have early voting.' },
+    { state: 'Alaska', details: 'Varies by location, but 15 days before Election Day.' },
+    { state: 'Arizona', details: '27 days before Election Day.' },
+    { state: 'Arkansas', details: '15 days before Election Day for the preferential primary and general election; 7 days before Election Day for all other elections.' },
+    { state: 'California', details: '29 days before Election Day. Varies by county.' },
+    { state: 'Colorado', details: '15 days before Election Day (in-person voting centers, may vary by county).' },
+    { state: 'Connecticut', details: '15 days before Election Day.' },
+    { state: 'Delaware', details: 'At least 10 days before Election Day.' },
+    { state: 'District of Columbia', details: 'Varies, but not more than 12 days before Election Day.' },
+    { state: 'Florida', details: 'At least 10 days before Election Day. Varies by county.' },
+    { state: 'Georgia', details: 'The fourth Monday before Election Day or if a state holiday, the next day.' },
+    { state: 'Hawaii', details: '10 business days before Election Day (all mail-in voting).' },
+    { state: 'Idaho', details: 'The third Monday before Election Day.' },
+    { state: 'Illinois', details: '40 days before Election Day.' },
+    { state: 'Indiana', details: '28 days before Election Day.' },
+    { state: 'Iowa', details: '20 days before Election Day (in-person absentee voting).' },
+    { state: 'Kansas', details: 'Up to 20 days before Election Day but no later than one week before Election Day.' },
+    { state: 'Kentucky', details: '5 days before Election Day.' },
+    { state: 'Louisiana', details: '14 days before Election Day (but 18 days before Election Day for the presidential election).' },
+    { state: 'Maine', details: '30 days before Election Day (in-person absentee).' },
+    { state: 'Maryland', details: 'The second Thursday before Election Day.' },
+    { state: 'Massachusetts', details: '17 days before Election Day for the General Election.' },
+    { state: 'Michigan', details: 'The second Saturday prior to Election Day.' },
+    { state: 'Minnesota', details: '46 days before Election Day (in-person absentee voting).' },
+    { state: 'Mississippi', details: '45 days before Election Day for eligible absentee voters.' },
+    { state: 'Missouri', details: 'The second Tuesday before Election Day (in-person no-excuse absentee voting).' },
+    { state: 'Montana', details: '30 days before Election Day (in-person absentee voting).' },
+    { state: 'Nebraska', details: '30 days before Election Day.' },
+    { state: 'Nevada', details: '17 days before Election Day.' },
+    { state: 'New Hampshire', details: 'N/A. New Hampshire does not offer in-person early or no-excuse absentee voting.' },
+    { state: 'New Jersey', details: '10 days before the General Election.' },
+    { state: 'New Mexico', details: '28 days before Election Day.' },
+    { state: 'New York', details: '10 days before Election Day.' },
+    { state: 'North Carolina', details: 'The third Thursday before Election Day.' },
+    { state: 'North Dakota', details: 'At least 15 days before Election Day.' },
+    { state: 'Ohio', details: '29 days before Election Day.' },
+    { state: 'Oklahoma', details: 'Thursday before Election Day for primary elections; Wednesday before Election Day for general elections.' },
+    { state: 'Oregon', details: 'N/A. Oregon has all mail-in ballots.' },
+    { state: 'Pennsylvania', details: 'Varies by county. Absentee and mail-in ballot applications available up to 50 days before Election Day.' },
+    { state: 'Rhode Island', details: '20 days before Election Day.' },
+    { state: 'South Carolina', details: '15 days before Election Day.' },
+    { state: 'South Dakota', details: '46 days before Election Day (in-person absentee voting).' },
+    { state: 'Tennessee', details: '20 days before Election Day.' },
+    { state: 'Texas', details: '17 days before Election Day.' },
+    { state: 'Utah', details: '14 days before Election Day.' },
+    { state: 'Vermont', details: '45 days before Election Day.' },
+    { state: 'Virginia', details: '45 days before Election Day (in-person absentee voting).' },
+    { state: 'Washington', details: '18 days before Election Day.' },
+    { state: 'West Virginia', details: '13 days before Election Day.' },
+    { state: 'Wisconsin', details: 'No earlier than 14 days before Election Day.' },
+    { state: 'Wyoming', details: '28 days before Election Day (in-person absentee voting).' },
 ];
+
+// Function to create and populate the dropdown
+function createEarlyVotingDropdown() {
+    const earlyVotingSection = document.getElementById('early-voting-map');
+    
+    // Create dropdown container
+    const dropdownContainer = document.createElement('div');
+    dropdownContainer.className = 'early-voting-dropdown';
+    
+    // Create label
+    const label = document.createElement('label');
+    label.htmlFor = 'state-select';
+    label.textContent = 'Select your state: ';
+    
+    // Create select element
+    const select = document.createElement('select');
+    select.id = 'state-select';
+    
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = '-- Select a state --';
+    select.appendChild(defaultOption);
+    
+    // Add options for each state
+    earlyVotingData.forEach(state => {
+        const option = document.createElement('option');
+        option.value = state.state;
+        option.textContent = state.state;
+        select.appendChild(option);
+    });
+    
+    // Create info display div
+    const infoDisplay = document.createElement('div');
+    infoDisplay.id = 'early-voting-info';
+    infoDisplay.className = 'early-voting-info';
+    
+    // Add event listener to select
+    select.addEventListener('change', function() {
+        const selectedState = earlyVotingData.find(state => state.state === this.value);
+        if (selectedState) {
+            const electionDate = new Date("November 5, 2024 00:00:00");
+            const today = new Date();
+            let content = `<strong>${selectedState.state}:</strong> ${selectedState.details}`;
+
+            if (!selectedState.details.toLowerCase().includes('does not have early voting') &&
+                !selectedState.details.toLowerCase().includes('n/a')) {
+                const daysBeforeElection = parseInt(selectedState.details.match(/\d+/));
+                if (!isNaN(daysBeforeElection)) {
+                    const earlyVotingStart = new Date(electionDate);
+                    earlyVotingStart.setDate(electionDate.getDate() - daysBeforeElection);
+                    
+                    if (today < earlyVotingStart) {
+                        const daysUntilEarlyVoting = Math.ceil((earlyVotingStart - today) / (1000 * 60 * 60 * 24));
+                        content += `<br>Early voting starts in ${daysUntilEarlyVoting} day${daysUntilEarlyVoting !== 1 ? 's' : ''}.`;
+                    } else {
+                        content += "<br><strong>Early voting has begun!</strong>";
+                    }
+                }
+            }
+            
+            infoDisplay.innerHTML = content;
+        } else {
+            infoDisplay.textContent = '';
+        }
+    });
+    
+    // Append elements to the container
+    dropdownContainer.appendChild(label);
+    dropdownContainer.appendChild(select);
+    
+    // Append container and info display to the early voting section
+    earlyVotingSection.appendChild(dropdownContainer);
+    earlyVotingSection.appendChild(infoDisplay);
+}
 
 // Function to create the USA map
 function createUSAMap() {
