@@ -247,6 +247,11 @@ async function populateCandidateDetails() {
     const candidateCards = document.getElementById("candidate-cards");
     candidateCards.innerHTML = ''; // Clear existing content
 
+    const candidateImages = {
+        'Donald Trump': 'https://imgur.com/2YwJVKf.jpg',
+        'Kamala Harris': 'https://imgur.com/GfGCCKP.jpg'
+    };
+
     for (const [candidateName, fecId] of Object.entries(candidateFecIds)) {
         const details = await fetchCandidateDetails(fecId);
         const financials = await fetchCandidateFinancials(fecId);
@@ -254,7 +259,7 @@ async function populateCandidateDetails() {
         if (details && financials) {
             const card = document.createElement("div");
             card.className = "candidate-card";
-            const imagePath = `images/${candidateName.toLowerCase().replace(' ', '_')}.jpg`;
+            const imagePath = candidateImages[candidateName] || 'images/placeholder.jpg';
             card.innerHTML = `
                 <img src="${imagePath}" alt="${candidateName}" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.error('Failed to load image: ${imagePath}');">
                 <div class="candidate-info-text">
