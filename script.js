@@ -12,13 +12,6 @@ const issues = [
     "Foreign Policy",
 ];
 
-const timelineEvents = [
-    { date: "June 2024", event: "Primary Elections" },
-    { date: "July 2024", event: "Party Conventions" },
-    { date: "September 2024", event: "Presidential Debates" },
-    { date: "November 5, 2024", event: "Election Day" },
-];
-
 // Populate candidate information
 function populateCandidates() {
     const candidateCards = document.getElementById("candidate-cards");
@@ -34,30 +27,7 @@ function populateCandidates() {
     });
 }
 
-// Populate key issues
-function populateIssues() {
-    const issuesList = document.getElementById("issues-list");
-    issues.forEach(issue => {
-        const li = document.createElement("li");
-        li.textContent = issue;
-        issuesList.appendChild(li);
-    });
-}
-
-// Populate election timeline
-function populateTimeline() {
-    const timeline = document.getElementById("timeline");
-    timelineEvents.forEach(event => {
-        const div = document.createElement("div");
-        div.className = "timeline-event";
-        div.innerHTML = `
-            <p><strong>${event.date}</strong></p>
-            <p>${event.event}</p>
-        `;
-        timeline.appendChild(div);
-    });
-}
-
+// Policy data
 const trumpPolicies = [
     "Seal the border and stop the migrant invasion",
     "Carry out the largest deportation operation in American history",
@@ -94,45 +64,62 @@ const harrisPolicies = [
     "Women's Rights: Protecting reproductive rights and promoting gender equality"
 ];
 
+// Function to populate policies
 function populatePolicies(candidateId, policies) {
     const policyList = document.getElementById(`${candidateId}-policy-list`);
-    policies.forEach(policy => {
-        const li = document.createElement("li");
-        li.textContent = policy;
-        policyList.appendChild(li);
-    });
+    if (policyList) {
+        policyList.innerHTML = ''; // Clear existing policies
+        policies.forEach(policy => {
+            const li = document.createElement("li");
+            li.textContent = policy;
+            policyList.appendChild(li);
+        });
+    }
 }
 
+// Function to initialize tabs
 function initializeTabs() {
     const tabs = document.querySelectorAll('.tab-button');
+    const candidateImage = document.querySelector('#current-candidate-image img');
+    
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
+            // Remove active class from all tabs
             tabs.forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
             tab.classList.add('active');
             
-            const candidate = tab.dataset.candidate;
+            // Hide all policy lists
             document.querySelectorAll('.policy-list').forEach(list => {
                 list.classList.remove('active');
             });
+            
+            // Show selected policy list
+            const candidate = tab.dataset.candidate;
             document.getElementById(`${candidate}-policies`).classList.add('active');
+            
+            // Update the image based on selected candidate
+            if (candidate === 'trump') {
+                candidateImage.src = 'https://raw.githubusercontent.com/your-username/your-repo/main/donald_trump.jpg';
+                candidateImage.alt = 'Donald Trump';
+            } else {
+                candidateImage.src = 'https://raw.githubusercontent.com/your-username/your-repo/main/kamala_harris.jpg';
+                candidateImage.alt = 'Kamala Harris';
+            }
         });
     });
 }
 
 // Initialize the dashboard
 function initDashboard() {
-    populateCandidateDetails();
-    populateIssues();
-    populateTimeline();
+    // Remove populateCandidateDetails() call
     populatePolicies('trump', trumpPolicies);
     populatePolicies('harris', harrisPolicies);
     initializeTabs();
     updateCountdown();
     populateCampaignContributions();
-    handleResponsiveLayout();
-    window.addEventListener("resize", handleResponsiveLayout);
-    createEarlyVotingDropdown(); // Add this line
-    createUSAMap();
+    createEarlyVotingDropdown();
+    createVotingChart();
 }
 
 // Run initialization when the DOM is loaded
@@ -149,16 +136,23 @@ function updateCountdown() {
     const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
-    document.getElementById("countdown-timer").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-    if (timeLeft < 0) {
-        clearInterval(countdownTimer);
-        document.getElementById("countdown-timer").innerHTML = "Election Day has arrived!";
+    const countdownTimer = document.getElementById("countdown-timer");
+    if (countdownTimer) {
+        if (timeLeft < 0) {
+            countdownTimer.innerHTML = "<span>Election Day has arrived!</span>";
+        } else {
+            countdownTimer.innerHTML = `
+                <span>${days}d</span>
+                <span>${hours}h</span>
+                <span>${minutes}m</span>
+                <span>${seconds}s</span>
+            `;
+        }
     }
 }
 
 // Start the countdown timer
-const countdownTimer = setInterval(updateCountdown, 1000);
+setInterval(updateCountdown, 1000);
 
 // OpenFEC API configuration
 const FEC_API_KEY = 'PSaqGNK0dUu9bLBDQ4fkfQOXusU2sDq9d2CXTyAB';
@@ -189,28 +183,45 @@ async function fetchTopContributors(candidateId) {
 
 async function populateCampaignContributions() {
     const contributionCards = document.getElementById('contribution-cards');
+    if (!contributionCards) return; // Add check for element existence
+    
     contributionCards.innerHTML = ''; // Clear existing content
     
-    for (const [candidateName, fecId] of Object.entries(candidateFecIds)) {
-        const contributors = await fetchTopContributors(fecId);
-        
+    const customContributions = {
+        'Kamala Harris': [
+            { contributor_name: 'MICHAEL BLOOMBERG', total: 19000000, details: 'BLOOMBERG INC., NEW YORK, NY 10150' },
+            { contributor_name: 'ERIC SCHMIDT', total: 1600000, details: 'ALPHABET INC., PALO ALTO, CA 94301 (Former CEO of Google)' },
+            { contributor_name: 'REID HOFFMAN', total: 7000000, details: 'CEO LINKEDIN' }
+        ],
+        'Donald Trump': [
+            { contributor_name: 'TIMOTHY MELLON', total: 7000000, details: 'GULF OIL' },
+            { contributor_name: 'LINDA MCMAHON', total: 16000000, details: 'SPOUSE OF VINCE MCMAHON' },
+            { contributor_name: 'DIANE HENDRICKS', total: 6300000, details: 'COFOUNDER ABC SUPPLY' }
+        ]
+    };
+    
+    Object.entries(customContributions).forEach(([candidateName, contributors]) => {
         const card = document.createElement('div');
         card.className = 'contribution-card';
         
         let contributorList = '<ul class="contributor-list">';
         contributors.forEach(contributor => {
-            contributorList += `<li>${contributor.contributor_name}: $${contributor.total.toLocaleString()}</li>`;
+            contributorList += `
+                <li>
+                    <strong>${contributor.contributor_name}</strong>: $${contributor.total.toLocaleString()}<br>
+                    <small>${contributor.details}</small>
+                </li>`;
         });
         contributorList += '</ul>';
         
         card.innerHTML = `
             <h3>${candidateName}</h3>
-            <p>Top 3 Corporate Contributors:</p>
+            <p>Top Campaign Contributors:</p>
             ${contributorList}
         `;
         
         contributionCards.appendChild(card);
-    }
+    });
 }
 
 async function fetchCandidateDetails(candidateId) {
@@ -243,52 +254,14 @@ async function fetchCandidateFinancials(candidateId) {
     }
 }
 
-async function populateCandidateDetails() {
-    const candidateCards = document.getElementById("candidate-cards");
-    candidateCards.innerHTML = ''; // Clear existing content
-
-    const candidateImages = {
-        'Donald Trump': 'https://imgur.com/2YwJVKf.jpg',
-        'Kamala Harris': 'https://imgur.com/GfGCCKP.jpg'
-    };
-
-    for (const [candidateName, fecId] of Object.entries(candidateFecIds)) {
-        const details = await fetchCandidateDetails(fecId);
-        const financials = await fetchCandidateFinancials(fecId);
-        
-        if (details && financials) {
-            const card = document.createElement("div");
-            card.className = "candidate-card";
-            const imagePath = candidateImages[candidateName] || 'images/placeholder.jpg';
-            card.innerHTML = `
-                <img src="${imagePath}" alt="${candidateName}" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.error('Failed to load image: ${imagePath}');">
-                <div class="candidate-info-text">
-                    <h3>${candidateName}</h3>
-                    <p><strong>Total Receipts:</strong> $${financials.receipts.toLocaleString()}</p>
-                    <p><strong>Total Disbursements:</strong> $${financials.disbursements.toLocaleString()}</p>
-                    <p><strong>Cash on Hand:</strong> $${financials.last_cash_on_hand_end_period.toLocaleString()}</p>
-                </div>
-            `;
-            candidateCards.appendChild(card);
-            console.log(`Added card for ${candidateName}`);
-        } else {
-            console.error(`Failed to fetch data for ${candidateName}`);
-        }
-    }
-}
-
 // Add this function to handle responsive layouts
 function handleResponsiveLayout() {
     const width = window.innerWidth;
     const candidateCards = document.getElementById("candidate-cards");
-    const timeline = document.getElementById("timeline");
-
     if (width <= 768) {
-        candidateCards.style.flexDirection = "column";
-        timeline.style.flexDirection = "column";
+        if (candidateCards) candidateCards.style.flexDirection = "column";
     } else {
-        candidateCards.style.flexDirection = "row";
-        timeline.style.flexDirection = "row";
+        if (candidateCards) candidateCards.style.flexDirection = "row";
     }
 }
 
@@ -349,11 +322,11 @@ const earlyVotingData = [
 
 // Function to create and populate the dropdown
 function createEarlyVotingDropdown() {
-    const earlyVotingSection = document.getElementById('early-voting-map');
+    const dropdownContainer = document.getElementById('early-voting-dropdown-container');
     
     // Create dropdown container
-    const dropdownContainer = document.createElement('div');
-    dropdownContainer.className = 'early-voting-dropdown';
+    const dropdownWrapper = document.createElement('div');
+    dropdownWrapper.className = 'early-voting-dropdown';
     
     // Create label
     const label = document.createElement('label');
@@ -387,39 +360,19 @@ function createEarlyVotingDropdown() {
     select.addEventListener('change', function() {
         const selectedState = earlyVotingData.find(state => state.state === this.value);
         if (selectedState) {
-            const electionDate = new Date("November 5, 2024 00:00:00");
-            const today = new Date();
-            let content = `<strong>${selectedState.state}:</strong> ${selectedState.details}`;
-
-            if (!selectedState.details.toLowerCase().includes('does not have early voting') &&
-                !selectedState.details.toLowerCase().includes('n/a')) {
-                const daysBeforeElection = parseInt(selectedState.details.match(/\d+/));
-                if (!isNaN(daysBeforeElection)) {
-                    const earlyVotingStart = new Date(electionDate);
-                    earlyVotingStart.setDate(electionDate.getDate() - daysBeforeElection);
-                    
-                    if (today < earlyVotingStart) {
-                        const daysUntilEarlyVoting = Math.ceil((earlyVotingStart - today) / (1000 * 60 * 60 * 24));
-                        content += `<br>Early voting starts in ${daysUntilEarlyVoting} day${daysUntilEarlyVoting !== 1 ? 's' : ''}.`;
-                    } else {
-                        content += "<br><strong>Early voting has begun!</strong>";
-                    }
-                }
-            }
-            
-            infoDisplay.innerHTML = content;
+            infoDisplay.innerHTML = `<strong>${selectedState.state}:</strong> ${selectedState.details}`;
         } else {
             infoDisplay.textContent = '';
         }
     });
     
     // Append elements to the container
-    dropdownContainer.appendChild(label);
-    dropdownContainer.appendChild(select);
+    dropdownWrapper.appendChild(label);
+    dropdownWrapper.appendChild(select);
     
-    // Append container and info display to the early voting section
-    earlyVotingSection.appendChild(dropdownContainer);
-    earlyVotingSection.appendChild(infoDisplay);
+    // Append container and info display to the dropdown container
+    dropdownContainer.appendChild(dropdownWrapper);
+    dropdownContainer.appendChild(infoDisplay);
 }
 
 // Function to create the USA map
@@ -479,3 +432,101 @@ function hideTooltip() {
         setTimeout(() => tooltip.remove(), 300);
     }
 }
+
+// Add this to your script.js
+const votingData = {
+    labels: ['WA', 'OR', 'CA', 'AK', 'HI', 'ID', 'UT', 'NV', 'MT', 'WY', 'CO', 'AZ', 'NM', 'ND', 'SD', 'NE', 'KS', 'OK', 'TX', 'MN', 'IA', 'MO', 'AR', 'LA', 'WI', 'IL', 'IN', 'MI', 'OH', 'PA', 'WV', 'VA', 'KY', 'TN', 'MS', 'AL', 'FL', 'GA', 'SC', 'NC', 'DE', 'MD', 'NJ', 'NY', 'CT', 'RI', 'MA', 'VT', 'NH', 'ME'],
+    datasets: [
+        {
+            label: 'Democrat (%)',
+            data: [43, 43, 43, 33, 43, 20, 25, 43, 45, 35, 43, 43, 43, 30, 30, 30, 30, 30, 43, 43, 43, 43, 43, null, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43, 43],
+            backgroundColor: '#3498db',
+            borderColor: '#3498db',
+        },
+        {
+            label: 'Republican (%)',
+            data: [39, 39, 39, 33, 39, 55, 55, 39, 35, 50, 39, 39, 39, 50, 50, 50, 50, 50, 39, 39, 39, 39, 39, null, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39],
+            backgroundColor: '#e74c3c',
+            borderColor: '#e74c3c',
+        },
+        {
+            label: 'Other (%)',
+            data: [18, 18, 18, 33, 18, 25, 20, 18, 20, 15, 18, 18, 18, 20, 20, 20, 20, 20, 18, 18, 18, 18, 18, null, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18],
+            backgroundColor: '#2ecc71',
+            borderColor: '#2ecc71',
+        }
+    ]
+};
+
+function createVotingChart() {
+    const ctx = document.getElementById('earlyVotingChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: votingData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Early Voting Results by State',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                },
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Percentage (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// In your createVotingVisualization function, update the animation code:
+
+function createVotingVisualization() {
+    const container = document.getElementById('visualization-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ 
+        antialias: false,
+        powerPreference: "low-power"
+    });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(1);
+    container.appendChild(renderer.domElement);
+
+    camera.position.z = 15;
+    camera.position.y = 8;
+    camera.lookAt(0, 0, 0);
+
+    // Set fixed position and render once
+    scene.rotation.y = Math.PI * 0.5;
+    renderer.render(scene, camera);
+
+    // Cleanup
+    return () => {
+        renderer.dispose();
+        scene.clear();
+    };
+}
+
